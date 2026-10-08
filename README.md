@@ -1,5 +1,7 @@
 # stragglers
 
+[![tests](https://github.com/rohanbaba/stragglers/actions/workflows/tests.yml/badge.svg)](https://github.com/rohanbaba/stragglers/actions/workflows/tests.yml)
+
 **Find the files on one drive that your backup is missing, and copy them over.**
 
 You have an old drive and a newer one that is supposed to hold everything. Some
