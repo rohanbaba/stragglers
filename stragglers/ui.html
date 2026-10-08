@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>stragglers</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2318212B'/%3E%3Ccircle cx='8' cy='13' r='3' fill='%23fff'/%3E%3Ccircle cx='16' cy='13' r='3' fill='%23fff'/%3E%3Ccircle cx='24' cy='20' r='3' fill='%23E59A3A'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#F2F4F7; --surface:#FFFFFF; --sunk:#F7F8FA; --ink:#18212B; --muted:#5D6878; --faint:#8A94A3;
+  --rule:#DCE1E7; --rule-2:#E9EDF1;
+  --amber:#B8650A; --amber-ink:#8F4E06; --amber-soft:#FBEEDB;
+  --sage:#3D7A57; --sage-2:#9CC5AC; --sage-soft:#E3F0E8;
+  --danger:#B3261E; --danger-soft:#FBE7E5; --focus:#2F5BD3; --sel:#EAF0FB;
+  --sans:"Segoe UI Variable Text","Segoe UI",-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Helvetica Neue",Arial,sans-serif;
+  --display:"Segoe UI Variable Display","Segoe UI",-apple-system,BlinkMacSystemFont,"SF Pro Display",system-ui,sans-serif;
+  --mono:"Cascadia Mono","Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+  --r:10px; --shadow:0 1px 2px rgba(24,33,43,.06),0 4px 16px rgba(24,33,43,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#101419; --surface:#181E26; --sunk:#141920; --ink:#E7EBF0; --muted:#9BA6B5; --faint:#6E7988;
+    --rule:#2A333E; --rule-2:#222A33;
+    --amber:#EBA048; --amber-ink:#F2B36A; --amber-soft:#3A2B17;
+    --sage:#6FB08A; --sage-2:#3E6A51; --sage-soft:#1C2E24;
+    --danger:#F2867E; --danger-soft:#3A1E1C; --focus:#86A8FF; --sel:#1E2938;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.2);}
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{font-variant-numeric:tabular-nums}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:6px}
+.hidden{display:none !important}
+.wrap{max-width:1160px;margin:0 auto;padding:18px 28px 80px}
+.mono{font-family:var(--mono);font-size:.9em}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+
+/* top bar */
+.top{display:flex;align-items:center;gap:20px;padding:4px 0 26px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:650;font-size:19px;letter-spacing:-.01em}
+.brand svg{display:block}
+.steps{display:flex;gap:4px;list-style:none;margin:0 auto 0 12px;padding:0;font-size:13px;color:var(--faint)}
+.steps li{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px}
+.steps li b{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;border:1px solid currentColor;font-size:11px;font-weight:600}
+.steps li.on{color:var(--ink);background:var(--surface);box-shadow:var(--shadow)}
+.steps li.done{color:var(--sage)}
+.steps li.done b{background:var(--sage);border-color:var(--sage);color:var(--surface)}
+.top .iconbtn{margin-left:auto}
+.iconbtn{border:none;background:none;color:var(--muted);padding:6px 10px;border-radius:8px;cursor:pointer;font-size:14px}
+.iconbtn:hover{background:var(--surface);color:var(--ink)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--rule);background:var(--surface);border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:500;white-space:nowrap}
+.btn:hover{border-color:var(--faint)}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:600}
+.btn.primary:hover{opacity:.9}
+.btn.primary:disabled{opacity:.35;cursor:not-allowed}
+.btn.big{padding:12px 22px;font-size:16px;border-radius:10px}
+.btn.quiet{border-color:transparent;background:none;color:var(--muted)}
+.btn.quiet:hover{color:var(--ink);background:var(--surface)}
+.btn.danger{color:var(--danger)}
+.link{border:none;background:none;padding:0;color:var(--focus);cursor:pointer;font-size:inherit}
+.link:hover{text-decoration:underline}
+
+.alert{display:flex;gap:10px;align-items:flex-start;background:var(--danger-soft);color:var(--ink);border-radius:var(--r);padding:12px 16px;margin:0 0 18px}
+.alert::before{content:"";flex:0 0 8px;height:8px;border-radius:50%;background:var(--danger);margin-top:7px}
+.note{background:var(--amber-soft);border-radius:var(--r);padding:12px 16px;margin:0 0 16px;font-size:14px}
+
+h1{font-family:var(--display);font-size:34px;line-height:1.15;font-weight:650;letter-spacing:-.02em;margin:0 0 8px;max-width:26ch}
+h2{font-size:17px;font-weight:600;margin:0}
+.lead{color:var(--muted);margin:0 0 26px;max-width:62ch;font-size:16px}
+.card{background:var(--surface);border-radius:14px;box-shadow:var(--shadow)}
+
+/* ---------- setup ---------- */
+.pick{display:grid;grid-template-columns:1fr 56px 1fr;align-items:stretch}
+.side{padding:22px 24px}
+.side h2{display:flex;align-items:baseline;gap:8px}
+.side .sub{color:var(--muted);font-size:13.5px;margin:2px 0 14px}
+.swap{display:flex;align-items:center;justify-content:center;border-left:1px solid var(--rule-2);border-right:1px solid var(--rule-2)}
+.swap button{width:38px;height:38px;border-radius:50%;border:1px solid var(--rule);background:var(--surface);cursor:pointer;color:var(--muted);display:grid;place-items:center}
+.swap button:hover{color:var(--ink);border-color:var(--faint)}
+.drives{display:grid;gap:8px}
+.drive{display:grid;grid-template-columns:36px 1fr auto;align-items:center;gap:2px 12px;text-align:left;width:100%;padding:11px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--surface);cursor:pointer}
+.drive:hover{border-color:var(--faint)}
+.drive .ic{grid-row:span 2;color:var(--muted)}
+.drive .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.drive .nm span{font-weight:400;color:var(--muted);margin-left:6px}
+.drive .cap{grid-column:2;font-size:12.5px;color:var(--muted)}
+.drive .meter{grid-column:2 / 4;height:4px;border-radius:2px;background:var(--rule-2);overflow:hidden;margin-top:4px}
+.drive .meter i{display:block;height:100%;background:var(--faint)}
+.drive .tick{grid-row:1;grid-column:3;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--rule);display:grid;place-items:center}
+.drive[aria-pressed=true]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);background:var(--sel)}
+.drive[aria-pressed=true] .tick{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.drive[aria-pressed=true] .ic{color:var(--ink)}
+.drive.disabled{opacity:.45;pointer-events:none}
+.typed{display:flex;gap:8px;margin-top:10px}
+.typed input{flex:1;min-width:0;padding:9px 12px;border:1px solid var(--rule);border-radius:9px;background:var(--sunk);font-family:var(--mono);font-size:13px}
+.setup-foot{display:flex;flex-wrap:wrap;gap:16px 24px;align-items:center;padding:18px 24px;border-top:1px solid var(--rule-2)}
+.setup-foot details{font-size:14px;color:var(--muted)}
+.setup-foot summary{cursor:pointer}
+.opts{display:grid;gap:12px;margin-top:12px;color:var(--ink)}
+.opts label.f{display:grid;gap:4px;font-size:13px;color:var(--muted);max-width:280px}
+.opts input[type=text]{padding:8px 10px;border:1px solid var(--rule);border-radius:8px;background:var(--surface);color:var(--ink)}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:14px;cursor:pointer}
+.check input{margin:3px 0 0;width:16px;height:16px;accent-color:var(--ink)}
+.check small{display:block;color:var(--muted);font-size:12.5px;line-height:1.45}
+.setup-foot .go{margin-left:auto}
+.recent{margin-top:34px}
+.recent h2{margin-bottom:10px}
+.recent-list{display:grid;gap:8px}
+.recent-item{display:grid;grid-template-columns:1fr auto auto;gap:14px;align-items:center;padding:12px 16px;background:var(--surface);border-radius:10px;box-shadow:var(--shadow)}
+.recent-item .pth{font-weight:600}
+.recent-item .when{color:var(--muted);font-size:13px}
+
+/* ---------- progress ---------- */
+.progress{padding:28px 30px}
+.big-pct{font-family:var(--display);font-size:56px;font-weight:650;letter-spacing:-.03em;line-height:1}
+.phase{font-size:17px;font-weight:600;margin:10px 0 2px}
+.bar{height:10px;border-radius:5px;background:var(--rule-2);overflow:hidden;margin:18px 0 14px}
+.bar i{display:block;height:100%;background:var(--ink);border-radius:5px;transition:width .5s ease}
+.bar.indet i{width:30% !important;animation:slide 1.4s ease-in-out infinite}
+@keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(340%)}}
+@media (prefers-reduced-motion: reduce){.bar.indet i{animation:none;width:100% !important;opacity:.3}}
+.stats{display:flex;flex-wrap:wrap;gap:8px 30px;font-size:14px;color:var(--muted)}
+.stats b{color:var(--ink);font-weight:600}
+.nowfile{font-family:var(--mono);font-size:12.5px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:12px;min-height:1.4em}
+ol.phases{list-style:none;margin:24px 0 0;padding:20px 0 0;border-top:1px solid var(--rule-2);display:grid;grid-template-columns:repeat(3,1fr);gap:8px 20px;font-size:13.5px;color:var(--faint)}
+ol.phases li{display:flex;gap:8px;align-items:center}
+ol.phases li::before{content:"";width:8px;height:8px;border-radius:50%;border:1.5px solid currentColor;flex:0 0 auto}
+ol.phases li.done{color:var(--sage)} ol.phases li.done::before{background:var(--sage)}
+ol.phases li.cur{color:var(--ink);font-weight:600} ol.phases li.cur::before{background:var(--ink);border-color:var(--ink)}
+.progress-actions{display:flex;justify-content:space-between;align-items:center;margin-top:22px}
+
+/* ---------- results ---------- */
+.hero{margin:0 0 24px}
+.hero h1{font-size:40px;max-width:24ch}
+.hero h1 em{font-style:normal;color:var(--amber)}
+.hero h1 .ok{color:var(--sage)}
+.hero .sub{color:var(--muted);font-size:14px}
+.split{display:flex;height:26px;border-radius:7px;overflow:hidden;background:var(--rule-2);margin:22px 0 12px;gap:2px}
+.split i{display:block;height:100%;min-width:3px}
+.split .same{background:var(--sage)} .split .moved{background:var(--sage-2)}
+.split .missing{background:var(--amber)}
+.split .dup{background:repeating-linear-gradient(135deg,var(--amber) 0 3px,var(--amber-soft) 3px 7px)}
+.split .error{background:var(--danger)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 26px;font-size:13.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.legend b{color:var(--ink);font-weight:600}
+
+.results{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:start}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;border:1px solid var(--rule);background:var(--surface);cursor:pointer;font-size:13.5px}
+.chip b{font-weight:600}
+.chip .n{color:var(--muted)}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip[aria-pressed=true] .n{color:inherit;opacity:.75}
+.chip.sys:not([aria-pressed=true]){color:var(--muted);border-style:dashed}
+.tools{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:0 0 12px;font-size:14px}
+.tools input[type=search]{flex:1 1 220px;min-width:0;padding:8px 12px;border:1px solid var(--rule);border-radius:9px;background:var(--surface)}
+.tools select{padding:7px 8px;border:1px solid var(--rule);border-radius:8px;background:var(--surface)}
+
+.groups{display:grid;gap:10px}
+.group{background:var(--surface);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+.ghead{display:grid;grid-template-columns:22px 20px 1fr auto;gap:10px;align-items:center;padding:14px 16px;cursor:pointer;user-select:none}
+.ghead:hover{background:var(--sunk)}
+.ghead .chev{color:var(--faint);transition:transform .15s}
+.group.open .ghead .chev{transform:rotate(90deg)}
+.ghead .gname{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ghead .gmeta{font-size:13px;color:var(--muted);font-weight:400;margin-left:8px}
+.ghead .gsize{font-weight:600;text-align:right}
+.ghead .gsize small{display:block;font-weight:400;font-size:12px;color:var(--muted)}
+input[type=checkbox]{width:16px;height:16px;accent-color:var(--ink);cursor:pointer;margin:0}
+.gbody{border-top:1px solid var(--rule-2)}
+.item{display:grid;grid-template-columns:22px 1fr auto;gap:4px 10px;padding:12px 16px 12px 16px;border-top:1px solid var(--rule-2)}
+.item:first-child{border-top:none}
+.item.off .ipath,.item.off .isize{opacity:.45}
+.item input[type=checkbox]{margin-top:3px}
+.ipath{font-family:var(--mono);font-size:13.5px;word-break:break-word}
+.ipath .par{color:var(--faint)}
+.tags{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:4px;font-size:12.5px;color:var(--muted)}
+.tag{display:inline-flex;align-items:center;padding:1px 8px;border-radius:999px;background:var(--sunk);border:1px solid var(--rule-2);color:var(--ink);font-size:12px}
+.tag.warn{background:var(--amber-soft);border-color:transparent;color:var(--amber-ink)}
+.tag.sys{border-style:dashed;color:var(--muted);background:none}
+.isize{text-align:right;font-weight:600;white-space:nowrap}
+.isize small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.dest{grid-column:2 / 4;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:13px;margin-top:6px}
+.dest .lbl{color:var(--muted)}
+.dest select{padding:4px 6px;border:1px solid var(--rule);border-radius:7px;background:var(--surface);max-width:100%;font-size:13px}
+.dest input{padding:4px 8px;border:1px solid var(--rule);border-radius:7px;background:var(--surface);font-family:var(--mono);font-size:12.5px;flex:1 1 220px;min-width:0}
+.dest .why{flex-basis:100%;color:var(--faint);font-size:12.5px}
+.files{grid-column:2 / 4;margin-top:8px;padding:8px 10px;background:var(--sunk);border-radius:8px;max-height:260px;overflow:auto;font-family:var(--mono);font-size:12.5px}
+.files div{display:flex;justify-content:space-between;gap:12px;padding:1px 0}
+.files .rep{color:var(--amber-ink)}
+.more{padding:12px 16px;border-top:1px solid var(--rule-2)}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+
+.panel{position:sticky;top:18px;padding:20px}
+.panel .k{font-size:13px;color:var(--muted)}
+.panel .total{font-family:var(--display);font-size:34px;font-weight:650;letter-spacing:-.02em;line-height:1.1;margin:2px 0 4px}
+.panel .brk{font-size:13.5px;color:var(--muted);margin-bottom:16px}
+.panel .space{font-size:13px;margin:0 0 16px;padding:10px 12px;border-radius:9px;background:var(--sunk)}
+.panel .space.bad{background:var(--danger-soft)}
+.panel .space .meter{height:6px;border-radius:3px;background:var(--rule);overflow:hidden;margin-top:6px}
+.panel .space .meter i{display:block;height:100%;background:var(--amber)}
+.panel .opts2{display:grid;gap:10px;margin:0 0 18px}
+.panel .btn.big{width:100%}
+.panel .links{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:14px;font-size:13.5px}
+details.reloc{margin-top:26px;background:var(--surface);border-radius:12px;box-shadow:var(--shadow);padding:14px 18px}
+details.reloc summary{cursor:pointer;font-weight:600}
+table.plain{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:10px}
+table.plain td,table.plain th{padding:7px 8px;border-top:1px solid var(--rule-2);text-align:left;vertical-align:top}
+table.plain th{font-weight:600;color:var(--muted);font-size:12.5px}
+.foot{margin-top:22px;font-size:13px;color:var(--muted);max-width:80ch}
+
+/* ---------- done ---------- */
+.done-card{padding:30px}
+.done-card .mark{width:44px;height:44px;border-radius:50%;background:var(--sage-soft);color:var(--sage);display:grid;place-items:center;margin-bottom:14px}
+.done-card.warn .mark{background:var(--amber-soft);color:var(--amber)}
+.counts{display:flex;flex-wrap:wrap;gap:12px 40px;margin:18px 0 24px}
+.counts div{font-size:13.5px;color:var(--muted)}
+.counts b{display:block;font-family:var(--display);font-size:30px;font-weight:650;color:var(--ink)}
+.row-actions{display:flex;flex-wrap:wrap;gap:10px}
+
+/* dialog */
+.dialog{position:fixed;inset:0;background:rgba(10,14,20,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+.dialog .box{background:var(--surface);border-radius:14px;max-width:520px;width:100%;padding:24px 26px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.dialog h2{font-size:20px;margin-bottom:8px}
+.dialog p{margin:0 0 10px;color:var(--muted)}
+.dialog .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+
+@media (max-width:980px){
+  .results{grid-template-columns:1fr}
+  .panel{position:static;order:-1}
+}
+@media (max-width:720px){
+  .wrap{padding:14px 16px 60px}
+  .steps{display:none}
+  .pick{grid-template-columns:1fr}
+  .swap{border:none;padding:4px 0}
+  .swap button{transform:rotate(90deg)}
+  h1,.hero h1{font-size:28px}
+  ol.phases{grid-template-columns:1fr 1fr}
+  .setup-foot .go{width:100%}
+  .recent-item{grid-template-columns:1fr auto}
+  .recent-item .when{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand" aria-label="stragglers">
+      <svg width="34" height="22" viewBox="0 0 34 22" aria-hidden="true"><circle cx="5" cy="7" r="4" fill="currentColor"/><circle cx="16" cy="7" r="4" fill="currentColor"/><circle cx="29" cy="15" r="4" fill="var(--amber)"/></svg>
+      stragglers
+    </div>
+    <ol class="steps" id="steps">
+      <li><b>1</b>Pick drives</li><li><b>2</b>Compare</li><li><b>3</b>Choose</li><li><b>4</b>Copy</li>
+    </ol>
+    <button class="iconbtn" id="quit" title="Stop stragglers">Quit</button>
+  </div>
+
+  <div id="err" class="alert hidden" role="alert"></div>
+
+  <!-- 1. pick drives -->
+  <section id="v-setup" class="hidden">
+    <h1>Find the files your backup is missing.</h1>
+    <p class="lead">Pick the drive that might have extra files, and the drive you want to keep everything on. Files already there are recognised even if they were moved or renamed. Nothing is changed until you choose to copy.</p>
+    <div class="card">
+      <div class="pick">
+        <div class="side">
+          <h2>Look in</h2>
+          <div class="sub">The drive that may have files the other one lacks</div>
+          <div class="drives" id="src-drives"></div>
+          <div class="typed"><input id="src-path" placeholder="or a folder path" aria-label="Source folder path"><button class="btn" data-browse="src">Browse</button></div>
+        </div>
+        <div class="swap"><button id="swap" title="Swap the two" aria-label="Swap source and destination">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h12l-3-3M17 17H5l3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+        <div class="side">
+          <h2>Keep everything on</h2>
+          <div class="sub">Your main drive, where missing files will be copied</div>
+          <div class="drives" id="tgt-drives"></div>
+          <div class="typed"><input id="tgt-path" placeholder="or a folder path" aria-label="Destination folder path"><button class="btn" data-browse="tgt">Browse</button></div>
+        </div>
+      </div>
+      <div class="setup-foot">
+        <details>
+          <summary>Options</summary>
+          <div class="opts">
+            <label class="f">Name for the source, used in reports and new folder names<input type="text" id="label" maxlength="40" placeholder="e.g. Old laptop drive"></label>
+            <label class="check"><input type="checkbox" id="thorough"><span>Thorough check<small>Also catches small files that were both renamed and re-dated. Can take hours on a big drive. Fast mode at worst copies such a file twice.</small></span></label>
+          </div>
+        </details>
+        <button class="btn primary big go" id="scan">Compare drives</button>
+      </div>
+    </div>
+    <div class="recent hidden" id="recent"><h2>Recent comparisons</h2><div class="recent-list" id="recent-list"></div></div>
+  </section>
+
+  <!-- 2. progress -->
+  <section id="v-progress" class="hidden">
+    <h1 id="p-title"></h1>
+    <p class="lead" id="p-lead"></p>
+    <div class="card progress">
+      <div class="big-pct" id="p-pct"></div>
+      <div class="phase" id="p-phase"></div>
+      <div class="muted small" id="p-detail"></div>
+      <div class="bar" id="p-bar"><i id="p-fill" style="width:0"></i></div>
+      <div class="stats" id="p-stats"></div>
+      <div class="nowfile" id="p-now"></div>
+      <ol class="phases" id="p-phases"></ol>
+      <div class="progress-actions"><span class="muted small" id="p-safe"></span><button class="btn danger" id="cancel">Stop</button></div>
+    </div>
+  </section>
+
+  <!-- 3. results -->
+  <section id="v-results" class="hidden">
+    <div class="hero">
+      <h1 id="r-head"></h1>
+      <div class="sub" id="r-sub"></div>
+      <div class="split" id="r-split" aria-hidden="true"></div>
+      <div class="legend" id="r-legend"></div>
+    </div>
+    <div id="r-note"></div>
+    <div class="results" id="r-body">
+      <div>
+        <div class="chips" id="chips"></div>
+        <div class="tools">
+          <input type="search" id="q" placeholder="Filter by folder name" aria-label="Filter by folder name">
+          <select id="sort" aria-label="Sort"><option value="size">Largest first</option><option value="name">A to Z</option></select>
+          <select id="bulk" aria-label="Set every destination"><option value="">Send everything to</option><option value="closest">Suggested places</option><option value="archive">One new folder</option></select>
+          <button class="link" id="expand">Expand all</button>
+        </div>
+        <div class="groups" id="groups"></div>
+        <details class="reloc hidden" id="reloc"><summary id="reloc-s"></summary><table class="plain" id="reloc-t"></table></details>
+        <p class="foot" id="r-foot"></p>
+      </div>
+      <aside class="card panel" id="panel">
+        <div class="k">Selected to copy</div>
+        <div class="total" id="s-total">0 B</div>
+        <div class="brk" id="s-brk"></div>
+        <div class="space" id="s-space"></div>
+        <div class="opts2">
+          <label class="check"><input type="checkbox" id="skiprep" checked><span>Skip repeats<small>Copy each file once, even if the source has several copies.</small></span></label>
+          <label class="check"><input type="checkbox" id="verify"><span>Double-check copies<small>Read every copy back and compare. Slower.</small></span></label>
+        </div>
+        <button class="btn primary big" id="copy">Copy</button>
+        <div class="links"><button class="link" data-reveal="scan">Open report folder</button><button class="link" id="new">New comparison</button></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- 4. done -->
+  <section id="v-done" class="hidden">
+    <div class="card done-card" id="d-card">
+      <div class="mark" id="d-mark"></div>
+      <h1 id="d-title"></h1>
+      <p class="lead" id="d-lead" style="margin-bottom:0"></p>
+      <div class="counts" id="d-counts"></div>
+      <div class="row-actions">
+        <button class="btn primary" id="d-rescan">Compare again to confirm</button>
+        <button class="btn" id="d-back">Back to the list</button>
+        <button class="btn quiet" data-reveal="scan">Open copy log</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="dialog hidden" id="dlg" role="dialog" aria-modal="true" aria-labelledby="dlg-t"><div class="box">
+  <h2 id="dlg-t"></h2>
+  <p id="dlg-p"></p>
+  <p id="dlg-p2"></p>
+  <div class="actions"><button class="btn" id="dlg-no">Cancel</button><button class="btn primary" id="dlg-yes">Start copying</button></div>
+</div></div>
+
+<script>
+"use strict";
+const TOKEN = (location.hash.match(/t=([^&]+)/)||[])[1] || "";
+const $ = s => document.querySelector(s);
+function el(tag, attrs, ...kids){ const e=document.createElement(tag);
+  for (const [k,v] of Object.entries(attrs||{})){ if(k==="class") e.className=v; else if(k==="text") e.textContent=v; else if(k.startsWith("on")) e[k]=v; else e.setAttribute(k,v); }
+  for (const k of kids) if(k!=null) e.append(k); return e; }
+const svg = (d,w=16) => { const s=document.createElementNS("http://www.w3.org/2000/svg","svg"); s.setAttribute("width",w); s.setAttribute("height",w); s.setAttribute("viewBox","0 0 24 24"); s.setAttribute("aria-hidden","true");
+  s.innerHTML=d; return s; };
+const ICON = {
+  drive:'<rect x="3" y="6" width="18" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="17" cy="12" r="1.2" fill="currentColor"/><path d="M6.5 12h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+  home:'<path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>',
+  check:'<path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>',
+  chev:'<path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+  warn:'<path d="M12 8v5M12 16.5v.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>',
+};
+async function api(path, body){
+  let r;
+  try{ r = await fetch(path, body===undefined ? {headers:{"X-Token":TOKEN}} :
+    {method:"POST", headers:{"X-Token":TOKEN,"Content-Type":"application/json"}, body:JSON.stringify(body)}); }
+  catch(e){ throw new Error("stragglers is not responding. Is it still running in the terminal?"); }
+  const j = await r.json().catch(()=>({error:"stragglers sent back something unexpected."}));
+  if(!r.ok || j.error) throw new Error(j.error || ("Error "+r.status));
+  return j;
+}
+function human(n){ if(n==null) return ""; const u=["B","KB","MB","GB","TB"]; let i=0; n=Number(n);
+  while(Math.abs(n)>=1024 && i<4){n/=1024;i++} return i ? (n>=100? n.toFixed(0) : n.toFixed(1))+" "+u[i] : n+" B"; }
+const num = n => Number(n||0).toLocaleString();
+const plural = (n, one, many) => num(n)+" "+(Number(n)===1 ? one : (many||one+"s"));
+function dur(s){ s=Math.max(0,Math.round(s)); if(s<60) return s+" s"; if(s<3600) return Math.round(s/60)+" min"; return Math.floor(s/3600)+" h "+Math.round(s%3600/60)+" min"; }
+function shortName(p){ if(!p) return ""; if(/^[A-Za-z]:[\\\/]?$/.test(p)) return p.slice(0,2)+"\\";
+  const parts=p.split(/[\\\/]/).filter(Boolean); return parts.length ? parts[parts.length-1] : p; }
+function showErr(m){ const e=$("#err"); if(!m){e.classList.add("hidden");return} e.textContent=m; e.classList.remove("hidden"); window.scrollTo({top:0,behavior:"smooth"}); }
+function view(name){
+  for (const v of ["setup","progress","results","done"]) $("#v-"+v).classList.toggle("hidden", v!==name);
+  document.body.dataset.view=name;
+}
+function setStep(i){ [...$("#steps").children].forEach((li,j)=>{ li.className = j===i ? "on" : (j<i ? "done" : ""); }); }
+
+/* ---------- 1. pick drives ---------- */
+let picked = {src:"", tgt:""}, drives = [];
+async function loadSetup(){
+  view("setup"); setStep(0);
+  try{ const d = await api("/api/drives"); drives = d.drives; }catch(e){ showErr(e.message); drives=[]; }
+  renderDrives();
+  try{
+    const h = await api("/api/history"); const box=$("#recent-list"); box.innerHTML="";
+    for (const r of h.runs.slice(0,6)){
+      box.append(el("div",{class:"recent-item"},
+        el("div",{}, el("div",{class:"pth",text:`${shortName(r.source_root)} compared with ${shortName(r.target_root)}`}),
+          el("div",{class:"muted small",text: r.items ? `${human(r.missing_b)} missing, ${plural(r.items,"item")} to review` : "Nothing was missing"})),
+        el("span",{class:"when",text:r.created}),
+        el("button",{class:"btn",text:"Open",onclick:()=>openRun(r.run)})));
+    }
+    $("#recent").classList.toggle("hidden", !h.runs.length);
+  }catch(e){}
+}
+function renderDrives(){
+  for (const side of ["src","tgt"]){
+    const box=$("#"+side+"-drives"); box.innerHTML="";
+    for (const dr of drives){
+      const pct = dr.total ? Math.round(dr.used/dr.total*100) : 0;
+      const isHome = dr.label==="Home folder";
+      const b = el("button",{class:"drive",type:"button","aria-pressed":String(picked[side]===dr.path),title:dr.path},
+        el("span",{class:"ic"}, svg(isHome?ICON.home:ICON.drive,24)),
+        el("span",{class:"nm"}, dr.label || "Untitled", el("span",{text:shortName(dr.path)===dr.label ? "" : shortName(dr.path)})),
+        el("span",{class:"tick"}, picked[side]===dr.path ? svg(ICON.check,12) : null),
+        el("span",{class:"cap",text:`${human(dr.free)} free of ${human(dr.total)}`+(side==="tgt" && !dr.writable ? ", read-only" : "")}),
+        el("span",{class:"meter"}, el("i",{style:`width:${pct}%`})));
+      const other = picked[side==="src"?"tgt":"src"];
+      if(other===dr.path) b.classList.add("disabled");
+      b.onclick=()=>choose(side, dr.path, dr.label);
+      box.append(b);
+    }
+    if(!drives.length) box.append(el("div",{class:"muted small",text:"No drives found. Type a folder path below."}));
+  }
+}
+function choose(side, path, label){
+  picked[side]=path; $("#"+side+"-path").value=path;
+  if(side==="src" && !$("#label").dataset.touched) $("#label").value = (label && label!=="Home folder" ? label : shortName(path)).slice(0,40);
+  renderDrives(); showErr("");
+}
+for (const side of ["src","tgt"]) $("#"+side+"-path").addEventListener("input", e=>{ picked[side]=e.target.value.trim(); renderDrives(); });
+$("#label").addEventListener("input", e=>{ e.target.dataset.touched="1"; });
+$("#swap").onclick=()=>{ const s=picked.src; picked.src=picked.tgt; picked.tgt=s; $("#src-path").value=picked.src; $("#tgt-path").value=picked.tgt;
+  if(!$("#label").dataset.touched){ const d=drives.find(x=>x.path===picked.src); $("#label").value = picked.src ? (d&&d.label&&d.label!=="Home folder"?d.label:shortName(picked.src)) : ""; }
+  renderDrives(); };
+document.querySelectorAll("[data-browse]").forEach(b=>b.onclick=async()=>{
+  try{ const r=await api("/api/browse",{}); if(r.path) choose(b.dataset.browse, r.path, shortName(r.path)); }catch(e){ showErr(e.message) } });
+$("#scan").onclick = async()=>{
+  showErr("");
+  if(!picked.src) return showErr("Pick the drive to look in.");
+  if(!picked.tgt) return showErr("Pick the drive to keep everything on.");
+  try{ await api("/api/scan",{source:picked.src,target:picked.tgt,label:$("#label").value.trim(),thorough:$("#thorough").checked}); poll(); }
+  catch(e){ showErr(e.message) }
+};
+async function openRun(run){ try{ await api("/api/load",{run}); await showResults(); }catch(e){ showErr(e.message) } }
+
+/* ---------- 2. progress ---------- */
+let timer=null;
+async function poll(){
+  clearTimeout(timer);
+  let s; try{ s = await api("/api/status"); }catch(e){ showErr(e.message); timer=setTimeout(poll,2500); return; }
+  const j = s.job;
+  if(!j) return s.has_plan ? showResults() : loadSetup();
+  if(j.state==="running"){ renderProgress(j); timer=setTimeout(poll,600); return; }
+  if(j.state==="failed"){ showErr("Something went wrong: "+j.error); return j.kind==="scan" ? loadSetup() : showResults(); }
+  if(j.kind==="scan") return j.state==="done" ? showResults() : loadSetup();
+  return showDone(s.copy_result, j.state==="cancelled");
+}
+function renderProgress(j){
+  view("progress"); setStep(j.kind==="scan"?1:3);
+  const p=j.progress, isScan=j.kind==="scan";
+  $("#p-title").textContent = isScan ? `Comparing ${shortName(j.source)} with ${shortName(j.target)}` : `Copying to ${shortName(j.target)}`;
+  $("#p-lead").textContent = isScan ? "First both drives are listed, then only the files that need a closer look are read. You can leave this running." : "Each file is written under a temporary name and only renamed once complete, so stopping is always safe.";
+  const known = p.bytes_total || p.total;
+  let frac = p.bytes_total ? p.bytes/p.bytes_total : (p.total ? p.done/p.total : 0);
+  frac = Math.min(1, Math.max(0, frac));
+  $("#p-pct").textContent = known ? Math.floor(frac*100)+"%" : "";
+  $("#p-phase").textContent = isScan ? p.steps[p.step] : "Copying files";
+  $("#p-detail").textContent = isScan ? (p.detail||"") : "";
+  $("#p-bar").classList.toggle("indet", !known);
+  $("#p-fill").style.width = known ? (frac*100).toFixed(1)+"%" : "30%";
+  const st=$("#p-stats"); st.innerHTML="";
+  const add=(label,val)=>st.append(el("span",{}, label+" ", el("b",{text:val})));
+  if(p.total) add("Files", `${num(p.done)} of ${num(p.total)}`); else if(p.done) add(p.step<2?"Found":"Files", num(p.done));
+  if(p.bytes) add(!isScan ? "Copied" : (p.step<2 ? "Size" : "Read"), p.bytes_total ? `${human(p.bytes)} of ${human(p.bytes_total)}` : human(p.bytes));
+  if(p.bytes && p.step_elapsed>3 && (!isScan || p.step>=2)) add("Speed", human(p.bytes/p.step_elapsed)+"/s");
+  if(p.eta!=null && p.step_elapsed>5) add("Time left", "about "+dur(p.eta));
+  add("Running for", dur(p.elapsed));
+  $("#p-now").textContent = isScan ? "" : (p.detail||"");
+  const ol=$("#p-phases"); ol.innerHTML="";
+  if(isScan) p.steps.forEach((n,i)=>ol.append(el("li",{class:i<p.step?"done":(i===p.step?"cur":""),text:n})));
+  ol.classList.toggle("hidden", !isScan);
+  $("#p-safe").textContent = isScan ? "Stopping keeps nothing from this comparison, but saves what was read for next time." : "";
+  $("#cancel").textContent = isScan ? "Stop comparing" : "Stop copying";
+}
+$("#cancel").onclick=async()=>{ try{ await api("/api/cancel",{}); }catch(e){ showErr(e.message) } };
+
+/* ---------- 3. results ---------- */
+let R=null, sel=new Map(), byId=new Map(), cat="", openGroups=new Set(), shownPer={};
+async function showResults(){
+  showErr(""); R = await api("/api/result"); view("results"); setStep(2);
+  byId = new Map(R.blocks.map(b=>[b.id,b]));
+  sel = new Map(); for (const b of R.blocks) sel.set(b.id,{on: !b.system && !b.all_repeats, mode:"closest", custom:""});
+  cat=""; openGroups=new Set(); shownPer={};
+  const t=R.totals, g=k=>t[k]||0, src=shortName(R.source_root), tgt=shortName(R.target_root);
+  const h=$("#r-head"); h.innerHTML="";
+  const sysB = R.blocks.filter(b=>b.system).reduce((a,b)=>a+b.bytes,0);
+  if(R.blocks.length) h.append(el("em",{text:human(g("missing_b"))}), ` on ${src} is not on ${tgt}.`);
+  else h.append(el("span",{class:"ok",text:"Nothing is missing."}), ` Everything on ${src} is already on ${tgt}.`);
+  $("#r-sub").textContent = `${plural(g("total_n"),"file")} (${human(g("total_b"))}) compared on ${R.created}, in ${dur(R.elapsed)}.`;
+  $("#r-sub").title = `${R.source_root} compared with ${R.target_root}`;
+  const parts=[["same","Already there, same folder","var(--sage)"],["moved","Already there, other folder","var(--sage-2)"],["missing","Missing","var(--amber)"],["dup","Repeats","var(--amber-soft)"],["error","Unreadable","var(--danger)"]];
+  const sp=$("#r-split"), lg=$("#r-legend"); sp.innerHTML=""; lg.innerHTML="";
+  for (const [k,label,color] of parts){
+    const b=g(k+"_b"), n=g(k+"_n"); if(!n) continue;
+    if(g("total_b")) sp.append(el("i",{class:k,style:`flex:${Math.max(b/g("total_b"),0.004)}`,title:`${label}: ${human(b)}`}));
+    lg.append(el("span",{}, el("i",{style:`background:${color}`+(k==="dup"?";outline:1px solid var(--amber)":"")}), el("b",{text:human(b)}), label.toLowerCase()));
+  }
+  const note=$("#r-note"); note.innerHTML="";
+  if(sysB) note.append(el("div",{class:"note",text:`${human(sysB)} of what is missing looks like installed apps or operating system files. Those items start unticked. Tick them if you really want them.`}));
+  if(!R.target_writable) note.append(el("div",{class:"alert",text:`${R.target_root} is read-only on this computer, so nothing can be copied to it. On a Mac this usually means the drive is formatted as NTFS.`}));
+  $("#r-body").classList.toggle("hidden", !R.blocks.length);
+  renderChips(); renderGroups(); renderReloc();
+  $("#r-foot").textContent = `${num(g("meta_n"))} files were matched instantly by size and date, ${num(g("content_n"))} were confirmed by reading their content, ${num(g("files_opened"))} files were opened. `+
+    (R.mode==="fast" ? "Fast mode: a small file that was both renamed and re-dated shows as missing, so at worst it is copied twice. " : "") +
+    (R.errors ? `${plural(R.errors,"problem")} were logged in errors.log.` : "");
+  updatePanel();
+}
+function renderChips(){
+  const box=$("#chips"); box.innerHTML="";
+  const cats={}; for (const b of R.blocks){ const c=cats[b.category]||(cats[b.category]={b:0,n:0}); c.b+=b.bytes-b.repeat_bytes; c.n++; }
+  const all=R.blocks.reduce((a,b)=>a+b.bytes-b.repeat_bytes,0);
+  const mk=(key,label,bytes)=>{ const c=el("button",{class:"chip"+(key==="Apps & system"?" sys":""),type:"button","aria-pressed":String(cat===key)}, el("b",{text:label}), el("span",{class:"n",text:human(bytes)}));
+    c.onclick=()=>{ cat=key; renderChips(); renderGroups(); }; return c; };
+  box.append(mk("","Everything",all));
+  Object.entries(cats).sort((a,b)=>(a[0]==="Apps & system")-(b[0]==="Apps & system") || b[1].b-a[1].b).forEach(([k,v])=>box.append(mk(k,k,v.b)));
+}
+function visibleBlocks(){
+  const q=$("#q").value.trim().toLowerCase();
+  return R.blocks.filter(b=>(!cat || b.category===cat) && (!q || b.src.toLowerCase().includes(q)));
+}
+function renderGroups(){
+  const box=$("#groups"); box.innerHTML="";
+  const gm=new Map();
+  for (const b of visibleBlocks()){ const k=b.top||""; if(!gm.has(k)) gm.set(k,[]); gm.get(k).push(b); }
+  let groups=[...gm.entries()].map(([k,bl])=>({k, bl, bytes:bl.reduce((a,b)=>a+b.bytes,0), files:bl.reduce((a,b)=>a+b.count,0)}));
+  groups.sort($("#sort").value==="name" ? (a,b)=>a.k.localeCompare(b.k) : (a,b)=>b.bytes-a.bytes);
+  if(!groups.length){ box.append(el("div",{class:"group empty",text:"No folders match."})); return; }
+  for (const g of groups) box.append(groupEl(g));
+}
+function groupEl(g){
+  const open=openGroups.has(g.k);
+  const node=el("div",{class:"group"+(open?" open":"")});
+  const cb=el("input",{type:"checkbox","aria-label":"Select everything in "+(g.k||"top level")});
+  const setCb=()=>{ const on=g.bl.filter(b=>sel.get(b.id).on).length; cb.checked=on===g.bl.length; cb.indeterminate=on>0 && on<g.bl.length; };
+  setCb();
+  cb.onclick=e=>{ e.stopPropagation(); const v=cb.checked; for (const b of g.bl) sel.get(b.id).on=v; if(open) fillBody(); updatePanel(); };
+  const whole=g.bl.filter(b=>b.kind==="folder").length, sys=g.bl.every(b=>b.system);
+  const name=el("div",{class:"gname"}, g.k || "Top level", el("span",{class:"gmeta",text: g.bl.length===1 && g.bl[0].src===g.k ? (g.bl[0].kind==="folder" ? "whole folder" : `${plural(g.bl[0].count,"file")} missing here`) : `${plural(g.bl.length,"place")}`+(whole?`, ${num(whole)} whole`:"")}));
+  if(sys) name.append(" ", el("span",{class:"tag sys",text:"Apps & system"}));
+  const head=el("div",{class:"ghead",role:"button",tabindex:"0","aria-expanded":String(open)},
+    cb, el("span",{class:"chev"}, svg(ICON.chev,16)), name,
+    el("div",{class:"gsize"}, human(g.bytes), el("small",{text:plural(g.files,"file")})));
+  const body=el("div",{class:"gbody"+(open?"":" hidden")});
+  function fillBody(){
+    body.innerHTML=""; const lim=shownPer[g.k]||100;
+    const list=[...g.bl].sort((a,b)=>b.bytes-a.bytes);
+    for (const b of list.slice(0,lim)) body.append(itemEl(b, g, setCb));
+    if(list.length>lim) body.append(el("div",{class:"more"}, el("button",{class:"link",text:`Show ${num(Math.min(100,list.length-lim))} more of ${num(list.length-lim)}`,onclick:()=>{shownPer[g.k]=lim+100; fillBody();}})));
+  }
+  if(open) fillBody();
+  const toggle=()=>{ const o=!openGroups.has(g.k); if(o) openGroups.add(g.k); else openGroups.delete(g.k);
+    node.classList.toggle("open",o); body.classList.toggle("hidden",!o); head.setAttribute("aria-expanded",String(o)); if(o) fillBody(); };
+  head.onclick=toggle; head.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); toggle(); } };
+  node.append(head, body);
+  return node;
+}
+function relTo(top, p){ return top && p.startsWith(top) ? p.slice(top.length).replace(/^[\\\/]/,"") : p; }
+function itemEl(b, g, onChange){
+  const s=sel.get(b.id);
+  const row=el("div",{class:"item"+(s.on?"":" off")});
+  const cb=el("input",{type:"checkbox","aria-label":"Copy "+(b.src||"top level")}); cb.checked=s.on;
+  cb.onchange=()=>{ s.on=cb.checked; row.classList.toggle("off",!s.on); onChange(); updatePanel(); };
+  const shown = relTo(g.k, b.src) || b.src || "(top level)";
+  const i=shown.lastIndexOf(R.sep);
+  const path=el("div",{class:"ipath"}, i>=0 ? el("span",{class:"par",text:shown.slice(0,i+1)}) : null, i>=0 ? shown.slice(i+1) : shown);
+  const tags=el("div",{class:"tags"});
+  if(b.kind==="folder") tags.append(el("span",{class:"tag",text: b.exists_on_target ? "Folder exists, files don't" : "Whole folder"}));
+  else tags.append(el("span",{class:"tag",text:`${num(b.count)} of ${num(b.folder_total)} files`}));
+  tags.append(el("span",{class:"tag"+(b.system?" sys":""),text:b.category}));
+  if(b.all_repeats) tags.append(el("span",{class:"tag warn",text:"Repeat of "+b.repeat_of}));
+  else if(b.repeat_bytes) tags.append(el("span",{class:"tag warn",text:human(b.repeat_bytes)+" of repeats"}));
+  const main=el("div",{}, path, tags);
+  const size=el("div",{class:"isize"}, human(b.bytes), el("small",{text:plural(b.count,"file")}));
+  const dest=el("div",{class:"dest"});
+  const selEl=el("select",{"aria-label":"Where to copy"});
+  selEl.append(el("option",{value:"closest",text:"Suggested: "+(b.suggested_dest||"top level")}));
+  selEl.append(el("option",{value:"archive",text:"New folder: "+R.archive_root+(b.src?R.sep+b.src:"")}));
+  selEl.append(el("option",{value:"custom",text:"Somewhere else..."}));
+  selEl.value=s.mode;
+  const inp=el("input",{placeholder:"Folder on "+shortName(R.target_root),"aria-label":"Destination folder"}); inp.value=s.custom;
+  inp.classList.toggle("hidden", s.mode!=="custom");
+  selEl.onchange=()=>{ s.mode=selEl.value; inp.classList.toggle("hidden", s.mode!=="custom"); if(s.mode==="custom") inp.focus(); };
+  inp.oninput=()=>{ s.custom=inp.value; };
+  const tog=el("button",{class:"link",type:"button",text:"Show files"});
+  dest.append(el("span",{class:"lbl",text:"Copy to"}), selEl, inp, tog, el("span",{class:"why",text:"Why: "+b.reason}));
+  row.append(cb, main, size, dest);
+  let box=null;
+  tog.onclick=async()=>{
+    if(box){ box.remove(); box=null; tog.textContent="Show files"; return; }
+    tog.textContent="Hide files"; box=el("div",{class:"files",text:"Loading..."}); row.append(box);
+    try{ const r=await api("/api/block?id="+b.id); box.textContent="";
+      const cut = b.kind==="folder" ? b.src.length+1 : 0;
+      for (const [p,sz,rep] of r.files) box.append(el("div",{class:rep?"rep":""}, el("span",{text:(cut? p.slice(cut) : p.split(R.sep).pop())+(rep?"  (repeat)":"")}), el("span",{class:"muted",text:human(sz)})));
+      if(r.count>r.files.length) box.append(el("div",{class:"muted",text:`and ${num(r.count-r.files.length)} more, listed in missing_files.csv`}));
+    }catch(e){ box.textContent=e.message }
+  };
+  return row;
+}
+function renderReloc(){
+  const rl=$("#reloc"), rt=$("#reloc-t"); rt.innerHTML="";
+  if(!R.relocated_count){ rl.classList.add("hidden"); return; }
+  $("#reloc-s").textContent=`Already on ${shortName(R.target_root)} in another folder: ${plural(R.relocated_count,"folder")}, nothing to copy`;
+  rt.append(el("tr",{},el("th",{text:"Folder on "+shortName(R.source_root)}),el("th",{text:"Size"}),el("th",{text:"Found at"})));
+  for (const r of R.relocated) rt.append(el("tr",{}, el("td",{class:"mono",text:r.src}), el("td",{text:`${human(r.bytes)}, ${plural(r.files,"file")}`}),
+    el("td",{class:"mono",text: r.found_at===null ? "spread across several folders" : (r.found_at||"top level")})));
+  rl.classList.remove("hidden");
+}
+function selection(){
+  const chosen=R.blocks.filter(b=>sel.get(b.id).on); const ids=new Set(chosen.map(b=>b.id));
+  let bytes=0, files=0, rb=0, rn=0;
+  for (const b of chosen){ bytes+=b.bytes; files+=b.count;
+    if($("#skiprep").checked) for (const [oid,[n,sz]] of Object.entries(b.repeats)) if(ids.has(Number(oid))){ rb+=sz; rn+=n; } }
+  return {chosen, bytes:bytes-rb, files:files-rn, rb, rn};
+}
+function updatePanel(){
+  if(!R) return;
+  const s=selection();
+  $("#s-total").textContent=human(s.bytes);
+  $("#s-brk").textContent = s.chosen.length ? `${plural(s.files,"file")} in ${plural(s.chosen.length,"place")}`+(s.rn?`, skipping ${human(s.rb)} of repeats`:"") : "Tick what you want to copy.";
+  const sp=$("#s-space"); sp.innerHTML="";
+  if(R.target_free!=null){
+    const bad = s.bytes > R.target_free;
+    sp.className="space"+(bad?" bad":"");
+    sp.append(el("div",{text: bad ? `Only ${human(R.target_free)} free on ${shortName(R.target_root)}. Untick some items.` : `${human(R.target_free)} free on ${shortName(R.target_root)}`}),
+      el("div",{class:"meter"}, el("i",{style:`width:${Math.min(100, R.target_free? s.bytes/R.target_free*100 : 100).toFixed(1)}%`})));
+  }
+  const btn=$("#copy"); btn.disabled = !s.chosen.length || !R.target_writable || (R.target_free!=null && s.bytes>R.target_free);
+  btn.textContent = s.chosen.length ? `Copy ${human(s.bytes)}` : "Copy";
+}
+$("#q").oninput=renderGroups; $("#sort").onchange=renderGroups; $("#skiprep").onchange=updatePanel;
+$("#bulk").onchange=e=>{ const v=e.target.value; if(!v) return; for (const s of sel.values()) s.mode=v; e.target.value=""; renderGroups(); };
+$("#expand").onclick=()=>{ const vis=new Set(visibleBlocks().map(b=>b.top||"")); const all=[...vis].every(k=>openGroups.has(k));
+  if(all){ openGroups=new Set(); $("#expand").textContent="Expand all"; } else { openGroups=vis; $("#expand").textContent="Collapse all"; } renderGroups(); };
+$("#new").onclick=async()=>{ try{ await api("/api/close",{}); }catch(e){} R=null; loadSetup(); };
+document.querySelectorAll("[data-reveal]").forEach(b=>b.onclick=async()=>{ try{ await api("/api/reveal",{what:b.dataset.reveal}); }catch(e){ showErr(e.message) } });
+
+/* ---------- 4. copy ---------- */
+function destFor(b){ const s=sel.get(b.id);
+  if(s.mode==="archive") return R.archive_root + (b.src ? R.sep + b.src : "");
+  if(s.mode==="custom") return s.custom; return b.suggested_dest; }
+$("#copy").onclick=()=>{
+  const s=selection();
+  for (const b of s.chosen){ const x=sel.get(b.id); if(x.mode==="custom" && !x.custom.trim()) return showErr(`Type a folder for ${b.src||"the top level"}, or pick another option for it.`); }
+  showErr("");
+  $("#dlg-t").textContent=`Copy ${plural(s.files,"file")} (${human(s.bytes)}) to ${shortName(R.target_root)}?`;
+  $("#dlg-p").textContent=`Nothing on ${R.target_root} is overwritten or deleted. If a different file with the same name is already there, the copy gets "(from ${R.label})" added to its name.`;
+  $("#dlg-p2").textContent=`${shortName(R.source_root)} is only read.`+($("#verify").checked?" Every copy will be read back and checked.":"");
+  $("#dlg").classList.remove("hidden"); $("#dlg-yes").focus();
+};
+const closeDlg=()=>$("#dlg").classList.add("hidden");
+$("#dlg-no").onclick=closeDlg;
+$("#dlg").addEventListener("keydown",e=>{ if(e.key==="Escape") closeDlg(); });
+$("#dlg").addEventListener("click",e=>{ if(e.target.id==="dlg") closeDlg(); });
+$("#dlg-yes").onclick=async()=>{
+  closeDlg();
+  const decisions=selection().chosen.map(b=>({id:b.id,dest:destFor(b)}));
+  try{ await api("/api/copy",{decisions,verify:$("#verify").checked,skip_repeats:$("#skiprep").checked}); poll(); }catch(e){ showErr(e.message) }
+};
+function showDone(res, cancelled){
+  view("done"); setStep(4); res=res||{counts:{}}; const c=res.counts||{};
+  const failed=c.failed||0, stopped=cancelled||!!res.stopped;
+  $("#d-card").classList.toggle("warn", stopped||failed>0);
+  const m=$("#d-mark"); m.innerHTML=""; m.append(svg(stopped||failed ? ICON.warn : ICON.check, 22));
+  $("#d-title").textContent = stopped ? "Copy stopped" : (failed ? `Copied, but ${plural(failed,"file")} failed` : "All copied");
+  $("#d-lead").textContent = (res.stopped ? res.stopped+" " : "") + (failed ? "The failures are listed in errors.log and copy_log.csv in the report folder. " : "") +
+    "Compare again to make sure nothing is left. It is much quicker the second time.";
+  const dc=$("#d-counts"); dc.innerHTML="";
+  const add=(n,l)=>dc.append(el("div",{}, el("b",{text:num(n)}), l));
+  add(c.copied||0,"copied"); add(c["already there"]||0,"already there"); add(c["repeat skipped"]||0,"repeats skipped"); if(failed) add(failed,"failed");
+}
+$("#d-back").onclick=()=>showResults();
+$("#d-rescan").onclick=async()=>{ try{ await api("/api/scan",{source:R.source_root,target:R.target_root,label:R.label,thorough:R.mode==="thorough"}); poll(); }catch(e){ showErr(e.message) } };
+$("#quit").onclick=async()=>{ if(document.body.dataset.view==="progress" && !confirmQuit()) return;
+  try{ await api("/api/quit",{}); }catch(e){}
+  document.body.innerHTML='<div class="wrap"><div class="top"><div class="brand">stragglers</div></div><h1>stragglers has stopped.</h1><p class="lead">You can close this tab. To start it again, run stragglers in your terminal.</p></div>'; };
+function confirmQuit(){ showErr("Something is still running. Click Stop first, then Quit."); return false; }
+
+if(!TOKEN) showErr("Open stragglers from the link printed in your terminal.");
+else poll();
+</script>
+</body>
+</html>

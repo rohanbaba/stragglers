@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stragglers"
+dynamic = ["version"]
+description = "Find the files on one drive that your backup is missing, even if they were moved or renamed, and copy them over safely."
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [{name = "Rohan Chandratre"}]
+keywords = ["backup", "hard drive", "duplicate", "merge", "file sync", "consolidate", "external drive"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Environment :: Web Environment",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Topic :: System :: Archiving :: Backup",
+    "Topic :: System :: Filesystems",
+    "Topic :: Utilities",
+]
+
+[project.urls]
+Homepage = "https://github.com/rohanbaba/stragglers"
+Issues = "https://github.com/rohanbaba/stragglers/issues"
+
+[project.scripts]
+stragglers = "stragglers.cli:main"
+
+[tool.setuptools]
+packages = ["stragglers"]
+
+[tool.setuptools.package-data]
+stragglers = ["ui.html"]
+
+[tool.setuptools.dynamic]
+version = {attr = "stragglers.__version__"}
